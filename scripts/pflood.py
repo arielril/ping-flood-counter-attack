@@ -1,3 +1,4 @@
+from datetime import datetime as dt
 import socket
 import sys
 import struct
@@ -16,13 +17,38 @@ ETH_P_ALL = 0x0003
 ETH_P_SIZE = 65536
 ETH_P_IP = 0x0800
 
+IP_PROTO_ICMP = 1
 
-ip_dictionary = set({})
+# TODO save the frequency of package receiving from each IP
+ip_dictionary = dict({})
 
 
-def addFoundIP(ip: str):
-    if ip not in ip_dictionary:
-        ip_dictionary.add(ip)
+# TODO check this computation if it is ok
+def computeFrequency(ip: str) -> int:
+    now = dt.now()
+    lastTime = ip_dictionary[ip]['lastTime']
+    elapsed = now - lastTime
+    pktCount = ip_dictionary[ip]['pktCount']
+    return pktCount / elapsed.total_seconds()
+
+
+def addFoundIPAndCalcFreq(ip: str):
+    if ip not in ip_dictionary.keys():
+        ip_dictionary[ip] = {
+            'lastTime': dt.now(),
+            'frequency': 0,
+            'pktCount': 1
+        }
+    else:
+        ip_dictionary[ip]['lastTime'] = dt.now()
+        ip_dictionary[ip]['pktCount'] += 1
+
+# TODO verify if the pkt count must be resetted here
+
+
+def updatePktFrequency():
+    for ip in ip_dictionary.keys():
+        ip_dictionary[ip]['frequency'] = computeFrequency(ip)
 
 
 def getSocket(if_net: str) -> socket:
@@ -55,22 +81,43 @@ def isIcmpRep(tp: int, code: int) -> bool:
 if __name__ == "__main__":
     sock = getSocket('eth0')
 
-    (packet, addr) = sock.recvfrom(ETH_P_SIZE)
+    lastExec = dt.now()
 
-    eth_len = 14
-    eth_header = packet[:eth_len]
+    while True:
+        (packet, addr) = sock.recvfrom(ETH_P_SIZE)
 
-    ether = struct.unpack('!6s6sH', eth_header)
+        eth_len = 14
+        eth_header = packet[:eth_len]
 
-    packet_type = ether[2]
+        ether = struct.unpack('!6s6sH', eth_header)
 
-    if isIP(packet_type):
-        print('is IP')
-        ip_options = packet[20+eth_len:]
+        packet_type = ether[2]
 
-        ip_options_type = ip_options[0]
-        ip_options_code = ip_options[1]
+        # compute the frequency for each known host
+        elapsedExec = dt.now() - lastExec
+        if elapsedExec.total_seconds() >= 5:
+            updatePktFrequency()
 
-        if isIcmpReq(ip_options_type, ip_options_code):
-            print('icmp req')
-            # TODO: add the source ip to the dictionary
+        if isIP(packet_type):
+            print('is IP')
+            ip_unpack = struct.unpack(
+                '!BBHHHBBH4s4s', packet[eth_len:20+eth_len])
+
+            ip_options = packet[20+eth_len:]
+            ip_source = socket.inet_ntoa(ip_unpack[8])
+            ip_dest = socket.inet_ntoa(ip_unpack[9])  # * this is me!
+
+            ip_options_type = ip_options[0]
+            ip_options_code = ip_options[1]
+
+            ip_protocol = ip_unpack[6]
+            print('ip proto', ip_protocol)
+
+            if ip_protocol == IP_PROTO_ICMP:
+                if isIcmpReq(ip_options_type, ip_options_code):
+                    print('icmp req')
+                    addFoundIPAndCalcFreq(ip_source)
+                    print('ip dict', ip_dictionary)
+
+        lastExec = dt.now()
+        print('\n')
