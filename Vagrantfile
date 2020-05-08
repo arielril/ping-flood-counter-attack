@@ -9,7 +9,7 @@ Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/bionic64"
   config.vm.define 'ping-flood-counter'
   config.vm.hostname = 'ping.flood'
-  # config.vm.box_check_update = false
+  config.vm.box_check_update = false
 
   # VB Guest Additions configuration:
   if Vagrant.has_plugin?('vagrant-vbguest')
@@ -33,5 +33,13 @@ Vagrant.configure(2) do |config|
   config.ssh.forward_x11 = true
 
   config.vm.provision "shell", path: "installcore.sh"
+
+  config.trigger.after :up do |trigger|
+    trigger.info = "More information"
+    trigger.run_remote = {
+      # inline: "bash -c 'sudo service core-daemon restart'"
+      path: './bootstrap.sh'
+    }
+  end
 
 end
