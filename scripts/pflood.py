@@ -5,6 +5,7 @@ import struct
 import math
 import os
 
+
 # DEFS
 ETH_P_ALL = 0x0003
 ETH_P_SIZE = 65536
@@ -291,18 +292,7 @@ def executeCounterAttack(ip_attack: str, max_sec: int):
 
 
 if __name__ == "__main__":
-
-    # for i in range(0, 10000):
-    #     s = getSocket(None, socket.getprotobyname('icmp'))
-    #     s1 = getSocket(None, socket.getprotobyname('icmp'))
-    #     s2 = getSocket(None, socket.getprotobyname('icmp'))
-
-    #     sendPing(s, '10.0.0.10', '10.0.1.10')
-    #     sendPing(s1, '10.0.0.10', '10.0.3.10')
-    #     sendPing(s2, '10.0.0.10', '10.0.4.10')
-
-    # sys.exit()
-
+    # monitoring socket
     sock = getSocket('eth0')
 
     try:
@@ -351,11 +341,10 @@ if __name__ == "__main__":
                         pInterval = getPacketInterval(ip_source)
 
                         if isPingFloodAttack(ip_source, pInterval):
+                            printInfo()
+                            print('Attack!!!!')
                             executeCounterAttack(ip_source, ATTACK_TIME)
-                            # printInfo()
-                            sys.exit()
 
-                # printInfo()
     except KeyboardInterrupt:
         printInfo()
         print('Done!')
