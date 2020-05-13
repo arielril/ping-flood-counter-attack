@@ -159,8 +159,8 @@ node n8 {
 	!
     }
     canvas c1
-    iconcoords {201.0 213.0}
-    labelcoords {201.0 245.0}
+    iconcoords {143.0 212.0}
+    labelcoords {143.0 244.0}
     interface-peer {eth0 n1}
 }
 

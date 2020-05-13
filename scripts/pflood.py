@@ -2,23 +2,19 @@ from datetime import datetime as dt
 import socket
 import sys
 import struct
+import math
 
-
-"""
-Steps:
-    1. Read ping packet
-    2. Save list of machines
-    3. Create a ping request to some machine in the net
-    4. Create a function to identify the ping flood attack
-    5. Counter attack the ping flood
-"""
-
+# DEFS
 ETH_P_ALL = 0x0003
 ETH_P_SIZE = 65536
 ETH_P_IP = 0x0800
-
 IP_PROTO_ICMP = 1
 
+
+# info inside ip_dictionary
+# * lastPacketAt = time of the last packet received
+# * pktIntervalSec = interval of packets receive in seconds
+# * attackPktsCount = quantity of packets that was lower than the threshold setup to consider as an attack
 ip_dictionary = dict({})
 
 
@@ -26,54 +22,53 @@ def bytes_to_mac(bytesmac):
     return ":".join("{:02x}".format(x) for x in bytesmac)
 
 
-def computeFrequency(ip: str) -> float:
-    pktCount = ip_dictionary[ip]['pktCount']
-    elapsedOcc = (dt.now() - ip_dictionary[ip]['lastOcc']).total_seconds()
-
-    # compute the frequency with packet per second
-    return pktCount / elapsedOcc
-
-
 def addFoundIP(ip: str) -> bool:
     if ip not in ip_dictionary.keys():
         ip_dictionary[ip] = dict({
-            'pktCount': 0,
+            'pktIntervalSec': math.inf,
+            'attackPktsCount': 0,
         })
         return True
     return False
 
 
-def incrementReceivedPackets(ip: str):
-    # create the property
-    if 'pktCount' not in ip_dictionary[ip].keys():
-        ip_dictionary[ip]['pktCount'] = 0
+def receivePacket(ip: str):
+    now = dt.now()
+    if 'lastPacketAt' not in ip_dictionary[ip].keys():
+        ip_dictionary[ip]['lastPacketAt'] = now
+        return
 
-    # increment pktCount
-    ip_dictionary[ip]['pktCount'] += 1
-
-    # if it is the first packet, set the occurrence time
-    if ip_dictionary[ip]['pktCount'] == 1:
-        ip_dictionary[ip]['lastOcc'] = dt.now()
-        print('pkt one', ip_dictionary[ip]['lastOcc'])
-
-    # if the pktCount passes the threshold, compute frequency and clear pktCount
-    if ip_dictionary[ip]['pktCount'] > 2:
-        updatePktFrequency(ip)
-        ip_dictionary[ip]['pktCount'] = 0
+    packet_inteval_dt = now - ip_dictionary[ip]['lastPacketAt']
+    ip_dictionary[ip]['pktIntervalSec'] = packet_inteval_dt.total_seconds()
+    ip_dictionary[ip]['lastPacketAt'] = now
 
 
-def updatePktFrequency(ip: str):
-    ip_dictionary[ip]['frequency'] = computeFrequency(ip)
+def getPacketInterval(ip: str) -> float:
+    if 'pktIntervalSec' not in ip_dictionary[ip].keys():
+        ip_dictionary[ip]['pktIntervalSec'] = math.inf
+    return ip_dictionary[ip]['pktIntervalSec']
 
 
-def updateAllPktFrequency():
-    for ip in ip_dictionary.keys():
-        updatePktFrequency(ip)
+def isPingFloodAttack(ip: str, interval: float) -> bool:
+    # TODO consider an IP source that sends some "attack packets" and then send a normal pkt (intermittent)
 
+    ATTACK_PKTCOUNT_THRESHOLD = 10
+    ATTACK_PKTINTERVAL_THRESHOLD = 0.1
 
-def cleanAllPacketCount():
-    for ip in ip_dictionary.keys():
-        ip_dictionary[ip]['pktCount'] = 0
+    # if the property was not initialized, initialize
+    if 'attackPktsCount' not in ip_dictionary[ip].keys():
+        ip_dictionary[ip]['attackPktsCount'] = 0
+        return False
+
+    # if the interval of the packets is less than the threshold, then is an attack
+    if interval < ATTACK_PKTINTERVAL_THRESHOLD:
+        ip_dictionary[ip]['attackPktsCount'] += 1
+
+    # if the source overlaps the max attack pkt count, counter attack
+    if ip_dictionary[ip]['attackPktsCount'] >= ATTACK_PKTCOUNT_THRESHOLD:
+        return True
+
+    return False
 
 
 def getSocket(if_net: str) -> socket:
@@ -103,21 +98,24 @@ def isIcmpRep(tp: int, code: int) -> bool:
     return tp == 0 and code == 0
 
 
-def printIPFreq():
+def printInfo():
     for ip in ip_dictionary.keys():
-        freq = 0
-        pktCount = 0
-        if 'frequency' in ip_dictionary[ip].keys():
-            freq = ip_dictionary[ip]['frequency']
-        if 'pktCount' in ip_dictionary[ip].keys():
-            pktCount = ip_dictionary[ip]['pktCount']
-        print('IP:', ip, '\tFreq:', freq, '\tCount:', pktCount)
+        pktInterval = 0
+        lastPacketAt = 0
+        attackPktsCount = 0
+        if 'pktIntervalSec' in ip_dictionary[ip].keys():
+            pktInterval = ip_dictionary[ip]['pktIntervalSec']
+        if 'lastPacketAt' in ip_dictionary[ip].keys():
+            lastPacketAt = ip_dictionary[ip]['lastPacketAt']
+        if 'attackPktsCount' in ip_dictionary[ip].keys():
+            attackPktsCount = ip_dictionary[ip]['attackPktsCount']
+        print('IP:', ip, '\tPkt Interval:',
+              pktInterval, '\tLastPktAt:', lastPacketAt,
+              '\tAttackPkts:', attackPktsCount)
 
 
 if __name__ == "__main__":
     sock = getSocket('eth0')
-
-    lastExec = dt.now()
 
     while True:
         (packet, addr) = sock.recvfrom(ETH_P_SIZE)
@@ -144,7 +142,6 @@ if __name__ == "__main__":
             ip_options_code = ip_options[1]
 
             if ip_protocol == IP_PROTO_ICMP:
-                print('ping')
                 if isIcmpReq(ip_options_type, ip_options_code):
                     """
                         When receiving an ICMP Request (ping) we have to save the source 
@@ -155,12 +152,20 @@ if __name__ == "__main__":
                         source isn't executing a ping flood attack.
                         If the ip_source is attacking the home machine, we need to counter attack!
                     """
+                    # add the ip in the botnet list
                     if addFoundIP(ip_source):
                         print('MAC:', bytes_to_mac(ether[1]))
                         print('IP:', ip_source)
 
-                    incrementReceivedPackets(ip_source)
+                    # set the packet as received
+                    receivePacket(ip_source)
+                    # get the interval (s) between the received packets
+                    pInterval = getPacketInterval(ip_source)
 
-            printIPFreq()
+                    if isPingFloodAttack(ip_source, pInterval):
+                        # TODO counter attack
+                        print('getting attacked!!!')
+                        printInfo()
+                        sys.exit()
 
-        # print('\n')
+            printInfo()
