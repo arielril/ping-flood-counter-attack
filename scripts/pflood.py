@@ -61,7 +61,7 @@ def isPingFloodAttack(ip: str, interval: float) -> bool:
     # TODO consider an IP source that sends some "attack packets" and then send a normal pkt (intermittent)
 
     ATTACK_PKTCOUNT_THRESHOLD = 10
-    ATTACK_PKTINTERVAL_THRESHOLD = 0.1
+    ATTACK_PKTINTERVAL_THRESHOLD = 0.01
 
     # if the property was not initialized, initialize
     if 'attackPktsCount' not in ip_dictionary[ip].keys():
@@ -269,7 +269,6 @@ def executeCounterAttack(ip_attack: str, max_sec: int):
         info_elapsed = (dt.now() - info_time).total_seconds()
         if info_elapsed >= 1:
             info_time = dt.now()
-            print('one sec gone!')
 
         if exec_elapsed_sec >= max_sec:
             break
@@ -341,8 +340,7 @@ if __name__ == "__main__":
                         pInterval = getPacketInterval(ip_source)
 
                         if isPingFloodAttack(ip_source, pInterval):
-                            printInfo()
-                            print('Attack!!!!')
+                            # printInfo()
                             executeCounterAttack(ip_source, ATTACK_TIME)
 
     except KeyboardInterrupt:
