@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scenario name="/vagrant/core_topo.xml">
+  <networks/>
+  <devices>
+    <device id="1" name="n1" type="router" class="" image="">
+      <position x="381" y="209" lat="47.57726692667662" lon="-122.12718812815125" alt="2.0"/>
+      <services>
+        <service name="zebra"/>
+        <service name="OSPFv2"/>
+        <service name="OSPFv3"/>
+        <service name="IPForward"/>
+      </services>
+    </device>
+    <device id="2" name="n2" type="router" class="" image="">
+      <position x="284" y="344" lat="47.57603976372441" lon="-122.12849517688964" alt="2.0"/>
+      <services>
+        <service name="zebra"/>
+        <service name="OSPFv2"/>
+        <service name="OSPFv3"/>
+        <service name="IPForward"/>
+      </services>
+    </device>
+    <device id="3" name="n3" type="router" class="" image="">
+      <position x="603" y="306" lat="47.576385190278614" lon="-122.12419673825515" alt="2.0"/>
+      <services>
+        <service name="zebra"/>
+        <service name="OSPFv2"/>
+        <service name="OSPFv3"/>
+        <service name="IPForward"/>
+      </services>
+    </device>
+    <device id="4" name="n4" type="host" class="" image="">
+      <position x="448" y="70" lat="47.578530419961346" lon="-122.12628532129071" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+      </services>
+    </device>
+    <device id="5" name="n5" type="host" class="" image="">
+      <position x="107" y="410" lat="47.575439806924805" lon="-122.13088020396897" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+      </services>
+    </device>
+    <device id="6" name="n6" type="host" class="" image="">
+      <position x="273" y="520" lat="47.574439863649616" lon="-122.12864339891152" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+      </services>
+    </device>
+    <device id="7" name="n7" type="host" class="" image="">
+      <position x="729" y="441" lat="47.57515800666144" lon="-122.12249892236815" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+      </services>
+    </device>
+    <device id="8" name="n8" type="host" class="" image="">
+      <position x="128" y="145" lat="47.577848682767744" lon="-122.13059723465449" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+      </services>
+    </device>
+    <device id="9" name="n9" type="host" class="" image="">
+      <position x="517" y="439" lat="47.57517618736935" lon="-122.12535556497167" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+      </services>
+    </device>
+    <device id="10" name="n10" type="host" class="" image="">
+      <position x="452" y="439" lat="47.57517618736935" lon="-122.12623142237366" alt="2.0"/>
+      <services>
+        <service name="DefaultRoute"/>
+        <service name="SSH"/>
+      </services>
+    </device>
+  </devices>
+  <links>
+    <link node_one="4" node_two="1">
+      <interface_one id="0" name="eth0" mac="00:00:00:aa:00:12" ip4="10.0.0.10" ip4_mask="24" ip6="2001::10" ip6_mask="64"/>
+      <interface_two id="0" name="eth0" mac="00:00:00:aa:00:13" ip4="10.0.0.1" ip4_mask="24" ip6="2001::1" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="8" node_two="1">
+      <interface_one id="0" name="eth0" mac="00:00:00:aa:00:14" ip4="10.0.1.10" ip4_mask="24" ip6="2001:1::10" ip6_mask="64"/>
+      <interface_two id="1" name="eth1" mac="00:00:00:aa:00:15" ip4="10.0.1.1" ip4_mask="24" ip6="2001:1::1" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="2" node_two="1">
+      <interface_one id="0" name="eth0" mac="00:00:00:aa:00:16" ip4="10.0.2.1" ip4_mask="24" ip6="2001:2::1" ip6_mask="64"/>
+      <interface_two id="2" name="eth2" mac="00:00:00:aa:00:17" ip4="10.0.2.2" ip4_mask="24" ip6="2001:2::2" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="5" node_two="2">
+      <interface_one id="0" name="eth0" mac="00:00:00:aa:00:18" ip4="10.0.3.10" ip4_mask="24" ip6="2001:3::10" ip6_mask="64"/>
+      <interface_two id="1" name="eth1" mac="00:00:00:aa:00:19" ip4="10.0.3.1" ip4_mask="24" ip6="2001:3::1" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="2" node_two="6">
+      <interface_one id="2" name="eth2" mac="00:00:00:aa:00:1a" ip4="10.0.4.1" ip4_mask="24" ip6="2001:4::1" ip6_mask="64"/>
+      <interface_two id="0" name="eth0" mac="00:00:00:aa:00:1b" ip4="10.0.4.10" ip4_mask="24" ip6="2001:4::10" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="3" node_two="1">
+      <interface_one id="0" name="eth0" mac="00:00:00:aa:00:1c" ip4="10.0.5.1" ip4_mask="24" ip6="2001:5::1" ip6_mask="64"/>
+      <interface_two id="3" name="eth3" mac="00:00:00:aa:00:1d" ip4="10.0.5.2" ip4_mask="24" ip6="2001:5::2" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="7" node_two="3">
+      <interface_one id="0" name="eth0" mac="00:00:00:aa:00:1e" ip4="10.0.6.10" ip4_mask="24" ip6="2001:6::10" ip6_mask="64"/>
+      <interface_two id="1" name="eth1" mac="00:00:00:aa:00:1f" ip4="10.0.6.1" ip4_mask="24" ip6="2001:6::1" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="2" node_two="10">
+      <interface_one id="3" name="eth3" mac="00:00:00:aa:00:20" ip4="10.0.7.1" ip4_mask="24" ip6="2001:7::1" ip6_mask="64"/>
+      <interface_two id="0" name="eth0" mac="00:00:00:aa:00:21" ip4="10.0.7.10" ip4_mask="24" ip6="2001:7::10" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+    <link node_one="9" node_two="3">
+      <interface_one id="0" name="eth0" mac="00:00:00:aa:00:22" ip4="10.0.8.10" ip4_mask="24" ip6="2001:8::10" ip6_mask="64"/>
+      <interface_two id="2" name="eth2" mac="00:00:00:aa:00:23" ip4="10.0.8.1" ip4_mask="24" ip6="2001:8::1" ip6_mask="64"/>
+      <options delay="0" bandwidth="0" per="0.0" dup="0" jitter="0" type="1" unidirectional="0"/>
+    </link>
+  </links>
+  <session_origin lat="47.5791667" lon="-122.132322" alt="2.0" scale="150.0"/>
+  <session_options>
+    <configuration name="controlnet" value=""/>
+    <configuration name="controlnet0" value=""/>
+    <configuration name="controlnet1" value=""/>
+    <configuration name="controlnet2" value=""/>
+    <configuration name="controlnet3" value=""/>
+    <configuration name="controlnet_updown_script" value=""/>
+    <configuration name="enablerj45" value="1"/>
+    <configuration name="preservedir" value="0"/>
+    <configuration name="enablesdt" value="0"/>
+    <configuration name="sdturl" value="tcp://127.0.0.1:50000/"/>
+  </session_options>
+  <session_metadata>
+    <configuration name="annotation a1" value="{iconcoords {295 4 522 128}} {type oval} {label {Atacante}} {labelcolor black} {fontfamily {Arial}} {fontsize {12}} {color #d64140} {width 0} {border black} {canvas c1}"/>
+    <configuration name="annotation a2" value="{iconcoords {610 338 808 467}} {type oval} {label {Atacado}} {labelcolor black} {fontfamily {Arial}} {fontsize {12}} {color #60cf70} {width 0} {border black} {canvas c1}"/>
+    <configuration name="canvas c1" value="{name {Canvas1}}"/>
+    <configuration name="global_options" value="interface_names=yes ip_addresses=yes ipv6_addresses=no node_labels=yes link_labels=yes show_api=no background_images=no annotations=yes grid=yes traffic_start=0"/>
+  </session_metadata>
+  <default_services>
+    <node type="mdr">
+      <service name="zebra"/>
+      <service name="OSPFv3MDR"/>
+      <service name="IPForward"/>
+    </node>
+    <node type="PC">
+      <service name="DefaultRoute"/>
+    </node>
+    <node type="prouter"/>
+    <node type="router">
+      <service name="zebra"/>
+      <service name="OSPFv2"/>
+      <service name="OSPFv3"/>
+      <service name="IPForward"/>
+    </node>
+    <node type="host">
+      <service name="DefaultRoute"/>
+      <service name="SSH"/>
+    </node>
+  </default_services>
+</scenario>
