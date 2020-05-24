@@ -37,7 +37,6 @@ Vagrant.configure(2) do |config|
   config.trigger.after :up do |trigger|
     trigger.info = "More information"
     trigger.run_remote = {
-      # inline: "bash -c 'sudo service core-daemon restart'"
       path: './bootstrap.sh'
     }
   end
